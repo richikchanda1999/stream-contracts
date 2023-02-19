@@ -10,7 +10,7 @@ import "hardhat-deploy";
 import "solidity-coverage";
 
 dotenv.config();
-const GAS_LIMIT = 10000000;
+const GAS_LIMIT = 1000000000;
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
@@ -42,10 +42,17 @@ const config: HardhatUserConfig = {
       gasPrice: 11e9, // 10 GWEI
     },
     hardhat: {
-      gas: 50000000000
+      gas: GAS_LIMIT,
+      gasPrice: 11e9, // 10 GWEI
     },
     mantle_testnet: {
       url: process.env.MANTLE_RPC,
+      accounts: [process.env.PRIVATE_KEY],
+      // gas: GAS_LIMIT,
+      // gasPrice: 11e9, // 10 GWEI
+    },
+    mumbai: {
+      url: process.env.MUMBAI_URL,
       accounts: [process.env.PRIVATE_KEY],
       gas: GAS_LIMIT,
       gasPrice: 11e9, // 10 GWEI
@@ -56,7 +63,7 @@ const config: HardhatUserConfig = {
     currency: "USD",
   },
   etherscan: {
-    apiKey: process.env.ETHERSCAN_API_KEY,
+    apiKey: process.env.POLYGONSCAN_API_KEY,
   },
   namedAccounts: {
     deployer: 0
