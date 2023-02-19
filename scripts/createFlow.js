@@ -20,21 +20,34 @@ async function main() {
     provider: customHttpProvider
   });
 
-  console.log(sf.settings.config);
-  console.log(resolver.get('supertokens.v1.DAIx'));
+  // console.log(sf.settings.config);
+  // console.log(resolver.get('supertokens.v1.DAIx'));
 
   const signer = sf.createSigner({ signer: wallet });
+  // const signer = customHttpProvider.getSigner();
 
-  const daix = await sf.loadSuperToken("fUSDCx");
+  // console.log(signer);
+
+  const daix = await sf.loadSuperToken("fDAIx");
+
+  console.log("Test print")
 
   const createFlowOperation = await daix.createFlow({
-      receiver: "0xCE15F6450f122210efA2f8c9370DFF30C7016C52", //tradeable cashflow address
-      flowRate: "100000000000"
+      sender: "0x039b882C4aF8Dc66c906dA6a44c6e2A561BB5223",
+      receiver: "0xD6Bbee7c3318F51FEd7FfFc6b271DF13de76eF47", //tradeable cashflow address
+      flowRate: "20000000000",
+      userData: "0x01"
   });
+
+  console.log("Test 2")
 
   const txn = await createFlowOperation.exec(signer);
 
+  console.log("Test 3")
+
   const receipt = await txn.wait();
+
+  console.log("Test 4")
 
   console.log(receipt);
   

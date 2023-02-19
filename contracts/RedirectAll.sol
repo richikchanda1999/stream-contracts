@@ -27,7 +27,6 @@ contract RedirectAll is SuperAppBase {
 
     /// @notice This is the list of current receivers that all streams are redirected to.
     mapping(uint256 => address) public _receivers;
-    mapping(address => uint256) public _reverseReceivers;
 
     constructor(
         ISuperToken acceptedToken,
@@ -58,7 +57,23 @@ contract RedirectAll is SuperAppBase {
 
     /// @dev Logged when the receiver changes
     /// @param receiver The new receiver address.
+    /// @param tokenId The tokenId of the NFT
     event ReceiverChanged(address indexed receiver, uint256 tokenId);
+
+    /// @dev Logged when a new flow is created
+    /// @param receiver The new receiver address.
+    /// @param flowRate The new flowRate
+    event FlowCreated(address indexed receiver, int96 flowRate);
+
+    /// @dev Logged when the flow is updated
+    /// @param receiver The new receiver address.
+    /// @param flowRate The new flowRate
+    event FlowUpdated(address indexed receiver, int96 flowRate);
+
+    /// @dev Logged when the flow is deleted
+    /// @param receiver The new receiver address.
+    /// @param flowRate The new flowRate
+    event FlowDeleted(address indexed receiver, int96 flowRate);
 
     // ---------------------------------------------------------------------------------------------
     // MODIFIERS
@@ -187,10 +202,9 @@ contract RedirectAll is SuperAppBase {
     /// @param ctx The context byte array from the Host's calldata.
     /// @return newCtx The new context byte array to be returned to the Host.
     function _updateOutflow(bytes calldata ctx) private returns (bytes memory newCtx) {
-        address requester = host.decodeCtx(ctx).msgSender;
+        uint256 tokenId = bytesToUint(host.decodeCtx(ctx).userData);
+        
         newCtx = ctx;
-
-        uint256 tokenId = _reverseReceivers[requester];
 
         console.log("---------------");
         console.logBytes(host.decodeCtx(ctx).userData);
@@ -205,23 +219,34 @@ contract RedirectAll is SuperAppBase {
         if (inFlowRate == 0) {
             // The flow does exist and should be deleted.
             newCtx = _acceptedToken.deleteFlowWithCtx(address(this), _receivers[tokenId], ctx);
+            emit FlowDeleted(_receivers[tokenId], 0);
         } else if (outFlowRate != 0) {
             // The flow does exist and needs to be updated.
             newCtx = _acceptedToken.updateFlowWithCtx(_receivers[tokenId], inFlowRate, ctx);
+            emit FlowUpdated(_receivers[tokenId], inFlowRate);
         } else {
             // The flow does not exist but should be created.
             newCtx = _acceptedToken.createFlowWithCtx(_receivers[tokenId], inFlowRate, ctx);
+            emit FlowCreated(_receivers[tokenId], inFlowRate);
         }
     }
 
-    function getOutFlowRate(uint256 tokenId) internal returns (int96 outFlowRate)
+    function getOutFlowRate(uint256 tokenId) internal view returns (int96 outFlowRate)
     {
         outFlowRate = _acceptedToken.getFlowRate(address(this), _receivers[tokenId]);
     }
 
     function updateMapping(address receiver, uint256 tokenId) internal {
         _receivers[tokenId] = receiver;
-        _reverseReceivers[receiver] = tokenId;
+    }
+
+    function bytesToUint(bytes memory b) internal pure returns (uint256){
+        uint256 number;
+        for(uint i=0;i<b.length;i++)
+        {
+            number = number + uint(uint8(b[i]))*(2**(8*(b.length-(i+1))));
+        }
+        return number;
     }
     
 }

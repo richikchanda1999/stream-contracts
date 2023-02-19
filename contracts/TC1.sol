@@ -50,7 +50,7 @@ contract TradeableCashflow1 is ERC721URIStorage, RedirectAll {
         return _tokenIds.current();
     }
 
-    function makeNFT(string memory _name, string memory _description) public {
+    function mintNFT(string memory _name, string memory _description) public {
         uint256 newItemId = _tokenIds.current();
 
         string memory finalSvg = string(
